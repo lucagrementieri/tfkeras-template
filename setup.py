@@ -24,9 +24,9 @@ with open(here / 'README.md', encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='pytorch_template',  # TODO: update
-    version=find_version('pytorch_template', '__init__.py'),  # TODO: update
-    description='PyTorch code and documentation template',  # TODO: update
+    name='tensorflow_template',  # TODO: update
+    version=find_version('tensorflow_template', '__init__.py'),  # TODO: update
+    description='Tensorflow code and documentation template',  # TODO: update
     long_description=long_description,
     author='Nextbit AI Team',
     author_email='lgrementieri@nextbit.it',  # TODO: update
@@ -45,13 +45,12 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    keywords='AI deep learning pytorch template',  # TODO: update
+    keywords='AI deep learning tensorflow template',  # TODO: update
     packages=find_packages(exclude=['build', 'data', 'dist', 'docs', 'tests']),
     python_requires='>=3.6',
     install_requires=[
         'tensorboard >= 2.0',
-        'torch >= 1.4',
-        'torchvision >= 0.2',
+        'tensorflow >= 2.0',
         'tqdm >= 4.23',
     ],
 )

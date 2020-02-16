@@ -19,7 +19,7 @@ from .utils import initialize_logger
 
 
 # TODO: update class name
-class PyTorchTemplate:
+class TensorflowTemplate:
     @staticmethod
     def _load_model(checkpoint: str) -> Model:
         with open(Path(checkpoint).parent.parent / 'hyperparams.json', 'r') as f:
@@ -149,7 +149,7 @@ class PyTorchTemplate:
         else:
             dev_loader = None
 
-        model = PyTorchTemplate._load_model(checkpoint)
+        model = TensorflowTemplate._load_model(checkpoint)
         best_checkpoint = model.fit(run_dir, train_loader, epochs, lr, dev_loader)
         return best_checkpoint
 
@@ -166,14 +166,14 @@ class PyTorchTemplate:
             pin_memory=True,
         )
 
-        model = PyTorchTemplate._load_model(checkpoint)
+        model = TensorflowTemplate._load_model(checkpoint)
         val_loss, val_metric = model.eval(dev_loader)
         return val_loss, val_metric
 
     @staticmethod
     def test(checkpoint: str, data_path: str) -> float:
         initialize_logger()
-        model = PyTorchTemplate._load_model(checkpoint)
+        model = TensorflowTemplate._load_model(checkpoint)
 
         # TODO: update transformations to be coherent with what was used during training
         transform = Compose(

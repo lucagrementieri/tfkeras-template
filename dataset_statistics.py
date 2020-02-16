@@ -7,8 +7,8 @@ import sys
 import torch
 import torch.utils.data
 
-from pytorch_template.ingestion import IngestDataset
-from pytorch_template.ingestion import ToTensor
+from tensorflow_template.ingestion import IngestDataset
+from tensorflow_template.ingestion import ToTensor
 
 
 def compute_statistics(root_dir: str) -> None:

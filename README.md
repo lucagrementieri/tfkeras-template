@@ -1,8 +1,8 @@
-# PyTorch Template
+# Tensorflow Template
 
-Code and documentation template for PyTorch research projects.
+Code and documentation template for Tensorflow research projects.
 This repository is intended to be cloned at the beginning of any
-new research deep learning project based on PyTorch.
+new research deep learning project based on Tensorflow.
 
 ## Getting Started
 
@@ -13,7 +13,7 @@ The project folder, including also files excluded from git versioning,
 has the following structure:
 
 ```
-pytorch-template/                   [main folder]
+tensorflow-template/                [main folder]
 │   .gitignore                      [files ignored by git]
 │   cli.py                          [package command-line interface]
 │   LICENSE                         [code license]
@@ -34,7 +34,7 @@ pytorch-template/                   [main folder]
 ├───docs                            [documentation folder]
 │       ...
 │
-└───pytorch_template                [package source code folder]
+└───tensorflow_template             [package source code folder]
         ...
 ```
 
@@ -50,11 +50,11 @@ In order to run the code you need to have Python 3.6 installed.
 
 You can install the package on MacOS/Linux with the following commands:
 ```
-git clone https://github.com/nextbitlabs/pytorch-template.git
-cd pytorch-template
+git clone https://github.com/nextbitlabs/tensorflow-template.git
+cd tensorflow-template
 python3 setup.py sdist
 python3 setup.py bdist_wheel
-pip3 install --no-index --find-links=dist pytorch_template -r requirements.txt
+pip3 install --no-index --find-links=dist tensorflow_template -r requirements.txt
 ```
 
 Here data are synthetic so, in order to generate them run:
@@ -238,16 +238,16 @@ The model converges to perfect predictions using default parameters.
 
 The template can be deployed on an NGC optimized instance, here we list
 the steps necessary to configure it on a AWS EC2 **g4dn.xlarge** instance
-on the **NVIDIA Volta Deep Learning AMI** environment.
+on the **NVIDIA Deep Learning AMI** environment.
 
 1. Log in via ssh following the instructions on the EC2 Management Dashboard.
-2. Clone the repo `pytorch-template` in the home directory.
-3. Download the most update PyTorch container running 
-`docker pull nvcr.io/nvidia/pytorch:YY.MM-py3`
+2. Clone the repo `tensorflow-template` in the home directory.
+3. Download the most update Tensorflow container running 
+`docker pull nvcr.io/nvidia/tensorflow:YY.MM-tf2-py3`
 4. Create a container with
 ```
 docker run --gpus all --name template -e HOME=$HOME -e USER=$USER \
-    -v $HOME:$HOME -p 6006:6006 --shm-size 60G -it nvcr.io/nvidia/pytorch:YY.MM-py3
+    -v $HOME:$HOME -p 6006:6006 --shm-size 60G -it nvcr.io/nvidia/tensorflow:YY.MM-tf2-py3
 ```
 At the end of the procedure you will gain access to a terminal on a Docker
 container configured to work on the GPU and you could simply run the commands

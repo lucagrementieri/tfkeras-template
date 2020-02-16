@@ -3,14 +3,14 @@
 import argparse
 import sys
 
-from pytorch_template.main import PyTorchTemplate  # TODO: update
+from tensorflow_template.main import TensorflowTemplate  # TODO: update
 
 
 class CLI:
     def __init__(self):
         #  TODO: update description and usage
         parser = argparse.ArgumentParser(
-            description='Command line interface for PyTorch template',
+            description='Command line interface for Tensorflow template',
             usage=(
                 'python3 cli.py <command> [<args>]\n'
                 '\n'
@@ -49,7 +49,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        PyTorchTemplate.ingest(args.data_dir, args.split)
+        TensorflowTemplate.ingest(args.data_dir, args.split)
         print(f'Ingestion completed')
 
     @staticmethod
@@ -70,7 +70,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        best_checkpoint = PyTorchTemplate.train(
+        best_checkpoint = TensorflowTemplate.train(
             args.tensor_dir, args.output_dir, args.batch_size, args.epochs, args.lr
         )
         print(f'Best checkpoint saved at {best_checkpoint}')
@@ -96,7 +96,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        best_checkpoint = PyTorchTemplate.restore(
+        best_checkpoint = TensorflowTemplate.restore(
             args.checkpoint,
             args.tensor_dir,
             args.output_dir,
@@ -118,7 +118,7 @@ class CLI:
         parser.add_argument('--batch-size', type=int, default=20, help='Batch size')
 
         args = parser.parse_args(sys.argv[2:])
-        val_loss, val_metric = PyTorchTemplate.evaluate(
+        val_loss, val_metric = TensorflowTemplate.evaluate(
             args.checkpoint, args.tensor_dir, args.batch_size
         )
         print(f'Validation - Loss: {val_loss:.4f} - Metric: {val_metric:.4f}')
@@ -134,7 +134,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        prediction = PyTorchTemplate.test(args.checkpoint, args.data_path)
+        prediction = TensorflowTemplate.test(args.checkpoint, args.data_path)
         print(f'Output: {prediction:.4f}')
 
 
