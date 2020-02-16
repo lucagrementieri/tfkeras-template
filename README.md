@@ -4,6 +4,10 @@ Code and documentation template for Tensorflow research projects.
 This repository is intended to be cloned at the beginning of any
 new research deep learning project based on Tensorflow.
 
+Every TODO comment in the code indicates a portion of the code
+that should be adapted for every specific project.
+The rest of the code should usually remain almost unchanged.
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running

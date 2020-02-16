@@ -1,42 +1,46 @@
 import argparse
 import json
-import multiprocessing
 import pathlib
 import sys
 
-import torch
-import torch.utils.data
+import numpy as np
+import tensorflow as tf
 
-from tensorflow_template.ingestion import IngestDataset
-from tensorflow_template.ingestion import ToTensor
+from tensorflow_template.ingestion import NpyDataset
 
 
 def compute_statistics(root_dir: str) -> None:
-    # TODO: update transform
-    dataset = IngestDataset(root_dir=root_dir, split='train', transform=ToTensor())
+    batch_size = 20
 
-    loader = torch.utils.data.DataLoader(
-        dataset, batch_size=20, num_workers=multiprocessing.cpu_count()
+    # TODO: add transform if needed
+    npy_dataset = NpyDataset(root_dir=root_dir, split='train')
+
+    dataset = tf.data.Dataset.from_generator(
+        npy_dataset.__iter__,
+        {'features': tf.float32, 'target': tf.float32, 'filename': tf.string},
     )
+    dataset = dataset.batch(batch_size)
 
     n = 0
-    channels = dataset[0]['features'].size(-1)
-    mean = torch.zeros(channels, dtype=torch.float32)
-    m2 = torch.zeros(channels, dtype=torch.float32)
+    mean = None
+    m2 = None
 
-    for sample in loader:
-        features = sample['features']
+    for samples in dataset.as_numpy_iterator():
+        features = samples['features']
+        if mean is None or m2 is None:
+            mean = np.zeros(features.shape[1], dtype=np.float32)
+            m2 = np.zeros(features.shape[1], dtype=np.float32)
         # Here mean and standard deviation are computed via Chan et. al. algorithm
         # (see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance)
-        count = features.size(0)
-        avg = features.mean(dim=0)
-        var = features.var(dim=0)
+        count = features.shape[0]
+        avg = features.mean(axis=0)
+        var = features.var(axis=0)
         delta = avg - mean
-        mean = (mean * n + features.sum(dim=0)) / (n + count)
-        m2 += var * (count - 1) + delta.pow(2) * n * count / (n + count)
+        mean = (mean * n + features.sum(axis=0)) / (n + count)
+        m2 += var * (count - 1) + np.power(delta, 2) * n * count / (n + count)
         n += count
 
-    std = torch.sqrt(m2 / (n - 1))
+    std = np.sqrt(m2 / (n - 1))
     statistics = {'mean': mean.tolist(), 'std': std.tolist()}
     print(statistics)
 

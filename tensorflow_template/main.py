@@ -1,18 +1,14 @@
 import json
 import logging
 import multiprocessing
-import shutil
 import time
 from pathlib import Path
 from typing import Tuple
 
 import torch
-from torch.utils.data import DataLoader
-from torchvision.transforms import Compose
-from tqdm import tqdm
 
-from .ingestion.datasets import IngestDataset, TorchDataset
-from .ingestion.transforms import Normalize, ToTensor
+from .ingestion import NpyDataset, NpyCodec, TFRecordWriter
+from .ingestion.transform import Normalize, Compose, Serialize
 from .models.linear import LinearRegression
 from .models.model import Model
 from .utils import initialize_logger
@@ -25,9 +21,8 @@ class TensorflowTemplate:
         with open(Path(checkpoint).parent.parent / 'hyperparams.json', 'r') as f:
             hyperparams = json.load(f)
 
-        if (
-            LinearRegression.__name__ == hyperparams['module_name']
-        ):  # TODO: update module
+        # TODO: update module
+        if LinearRegression.__name__ == hyperparams['module_name']:
             module_class = LinearRegression  # TODO: update module
         else:
             raise ValueError('Checkpoint of unsupported module')
@@ -40,39 +35,36 @@ class TensorflowTemplate:
         return model
 
     @staticmethod
-    def ingest(root_dir: str, split: str) -> None:
+    def ingest(
+        root_dir: str,
+        split: str,
+        records_per_file: int,
+        overwrite: bool = False,
+        workers: int = 1,
+    ) -> None:
         initialize_logger()
 
         # TODO: update transformations
-        # TODO: Compose is not needed in case of a single transform inside
         transform = Compose(
             [
-                ToTensor(),
-                # TODO: ToTensor is useless in this case, but preserved as an example.
-                #  Check if you really need it
-                # TODO: if you need normalization, replace values with statistics computed by
-                #  dataset_statistics.py ; else remove it.
+                # TODO: replace values with statistics computed with dataset_statistics.py
                 Normalize(
                     mean=(0.502, 0.475, 0.475, 0.534, 0.493),
-                    std=(0.283, 0.277, 0.281, 0.302, 0.306),
+                    std=(0.276, 0.270, 0.274, 0.295, 0.299),
                 ),
+                Serialize(NpyCodec(5)),
             ]
         )
 
-        dataset = IngestDataset(root_dir, split, transform=transform)
-        loader = DataLoader(
-            dataset, batch_size=None, num_workers=multiprocessing.cpu_count()
+        dataset = NpyDataset(root_dir, split, transform=transform)
+
+        writer = TFRecordWriter(
+            Path(root_dir) / 'tfrecords' / split, records_per_file, overwrite, workers
         )
-
-        # TODO: update path
-        output_dir = Path(root_dir) / 'tensors' / split
-        if output_dir.exists():
-            shutil.rmtree(output_dir, ignore_errors=True)
-        output_dir.mkdir(parents=True)
-
-        for sample in tqdm(loader, desc=f'Writing {split} feature files'):
-            output_path = output_dir / f"{sample['filename']}.pt"
-            torch.save(([sample['features'], sample['target']]), output_path)
+        writer.start()
+        writer.write(dataset)
+        writer.close()
+        logging.info('Ingestion completed')
 
     @staticmethod
     def train(
@@ -183,7 +175,7 @@ class TensorflowTemplate:
                 #  dataset_statistics.py ; else remove it.
                 Normalize(
                     mean=(0.502, 0.475, 0.475, 0.534, 0.493),
-                    std=(0.283, 0.277, 0.281, 0.302, 0.306),
+                    std=(0.276, 0.270, 0.274, 0.295, 0.299),
                 ),
             ]
         )
