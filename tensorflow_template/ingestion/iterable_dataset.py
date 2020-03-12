@@ -1,8 +1,10 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Any, Iterator
 
 
-class IterableDataset(ABC):
+class IterableDataset:
+    __metaclass__ = ABCMeta
+
     def __init__(self):
         self.__idx = None
 

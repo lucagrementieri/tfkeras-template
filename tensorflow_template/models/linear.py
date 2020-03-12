@@ -1,25 +1,41 @@
-import torch
-import torch.nn as nn
+from typing import Any, Dict
+
+import tensorflow as tf
+from tensorflow.keras import layers
 
 
-def initialize_weights(m: nn.Module) -> None:
-    # TODO: update initialization (with gain)
-    if isinstance(m, nn.Linear):
-        nn.init.xavier_normal_(m.weight)
+class Linear(layers.Layer):
+    def __init__(self, units: int, **kwargs):
+        super(Linear, self).__init__(**kwargs)
+        self.units = units
+
+    # noinspection PyAttributeOutsideInit
+    def build(self, input_shape: tf.TensorShape) -> None:
+        # TODO REAL: check type of input_shape
+        print('Type of input_shape', type(input_shape))
+        self.w = self.add_weight(
+            shape=(input_shape[-1], self.units), initializer='he_normal', trainable=True
+        )
+        self.b = self.add_weight(
+            shape=(self.units,), initializer='zeros', trainable=True
+        )
+
+    def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
+        return tf.matmul(inputs, self.w) + self.b
+
+    def get_config(self) -> Dict[str, Any]:
+        config = super().get_config()
+        config.update({'units': self.units})
+        return config
 
 
-class LinearRegression(nn.Module):
-    def __init__(self, features_size: int):
-        super(LinearRegression, self).__init__()
+class LinearRegression(tf.keras.Model):
+    def __init__(self):
+        super().__init__()
         # TODO: update model layers
-        self.fc = nn.Linear(features_size, 1)
-        self.hyperparams = {
-            'module_name': 'LinearRegression',
-            'features_size': features_size,
-        }
-        self.apply(initialize_weights)
+        self.fc = Linear(1)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # noinspection PyUnresolvedReferences
-        prediction = torch.squeeze(self.fc(x))
+    # TODO: update call function
+    def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
+        prediction = tf.squeeze(self.fc(inputs))
         return prediction
