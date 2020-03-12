@@ -19,7 +19,7 @@ class NpyCodec(Codec):
         feature = {
             'features': Codec._float_features(example['features'].tolist()),
             'target': Codec._float_feature(example['target']),
-            'filename': Codec._bytes_feature(example['filename']),
+            'filename': Codec._bytes_feature(example['filename'].encode('utf-8')),
         }
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
         record = example_proto.SerializeToString()
@@ -37,6 +37,7 @@ class NpyCodec(Codec):
         example = tf.io.parse_single_example(record, record_description)
 
         # TODO REAL: check if all these operations are needed
+        # TODO REAL: check if decoding works
         features = tf.io.decode_raw(example['features'], tf.float32)
         features = features.set_shape(self.features_size)
         features = tf.cast(features, tf.float32)
