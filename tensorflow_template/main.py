@@ -57,13 +57,22 @@ class TensorflowTemplate:
         )
 
         dataset = NpyDataset(root_dir, split, transform=transform)
+        split_path = Path(root_dir) / 'tfrecords' / split
+        if split_path.exists() and not overwrite:
+            raise FileExistsError(f"File exists: '{split_path}'")
 
-        writer = TFRecordWriter(
-            Path(root_dir) / 'tfrecords' / split, records_per_file, overwrite, workers
-        )
+        writer = TFRecordWriter(split_path, records_per_file, overwrite, workers)
         writer.start()
         writer.write(dataset)
         writer.close()
+
+        for worker_dir in split_path.iterdir():
+            if not worker_dir.is_dir():
+                continue
+            for source in worker_dir.iterdir():
+                source.replace(source.parent.parent / source.name)
+            worker_dir.rmdir()
+
         logging.info('Ingestion completed')
 
     @staticmethod
