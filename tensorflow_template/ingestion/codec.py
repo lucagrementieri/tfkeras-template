@@ -1,10 +1,12 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Any, Sequence
 
 import tensorflow as tf
 
 
-class Codec(ABC):
+class Codec:
+    __metaclass__ = ABCMeta
+
     @staticmethod
     def _bytes_feature(value: Any) -> tf.train.Feature:
         if isinstance(value, type(tf.constant(0))):

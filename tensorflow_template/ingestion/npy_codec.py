@@ -35,15 +35,4 @@ class NpyCodec(Codec):
             'filename': tf.io.FixedLenFeature([], tf.string),
         }
         example = tf.io.parse_single_example(record, record_description)
-
-        # TODO REAL: check if all these operations are needed
-        # TODO REAL: check if decoding works
-        features = tf.io.decode_raw(example['features'], tf.float32)
-        features = features.set_shape(self.features_size)
-        features = tf.cast(features, tf.float32)
-
-        target = tf.io.decode_raw(example['target'], tf.float32)
-        target = target.set_shape(1)
-        target = tf.cast(target, tf.float32)
-
-        return features, target
+        return example['features'], example['target']

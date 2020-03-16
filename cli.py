@@ -78,7 +78,7 @@ class CLI:
         parser = argparse.ArgumentParser(description='Train the model')
         #  TODO: update parameters and default values
         parser.add_argument(
-            'tensor_dir', metavar='tensor-dir', type=str, help='Tensors directory'
+            'tfrecords_dir', metavar='tfrecords-dir', type=str, help='TFRecords directory'
         )
         parser.add_argument(
             '--output-dir', type=str, help='Output directory', default='./'
@@ -91,7 +91,7 @@ class CLI:
 
         args = parser.parse_args(sys.argv[2:])
         best_checkpoint = TensorflowTemplate.train(
-            args.tensor_dir, args.output_dir, args.batch_size, args.epochs, args.lr
+            args.tfrecords_dir, args.output_dir, args.batch_size, args.epochs, args.lr
         )
         print(f'Best checkpoint saved at {best_checkpoint}')
 
@@ -160,3 +160,6 @@ class CLI:
 
 if __name__ == '__main__':
     CLI()
+    # TODO REAL remove warnings
+    # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+

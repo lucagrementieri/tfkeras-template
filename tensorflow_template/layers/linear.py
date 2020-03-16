@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
+# TODO: remove this example layer
 class Linear(layers.Layer):
     def __init__(self, units: int, **kwargs):
         super(Linear, self).__init__(**kwargs)
@@ -27,15 +28,3 @@ class Linear(layers.Layer):
         config = super().get_config()
         config.update({'units': self.units})
         return config
-
-
-class LinearRegression(tf.keras.Model):
-    def __init__(self):
-        super().__init__()
-        # TODO: update model layers
-        self.fc = Linear(1)
-
-    # TODO: update call function
-    def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
-        prediction = tf.squeeze(self.fc(inputs))
-        return prediction
