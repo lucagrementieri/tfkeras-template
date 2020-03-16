@@ -1,13 +1,12 @@
 import logging
 import multiprocessing
-import os
 import time
 from pathlib import Path
 from typing import Tuple
 
 import tensorflow as tf
 
-from .ingestion import NpyDataset, NpyCodec, TFRecordWriter
+from .ingestion import NpyDataset, NpyCodec, TFRecordWriter, TFRecordLoader
 from .ingestion.transform import Normalize, Compose, Serialize
 from .models.linear_regression import LinearRegression, linear_regression
 from .utils import initialize_logger
@@ -21,11 +20,11 @@ class TensorflowTemplate:
 
     @staticmethod
     def ingest(
-        root_dir: str,
-        split: str,
-        records_per_file: int,
-        overwrite: bool = False,
-        workers: int = 1,
+            root_dir: str,
+            split: str,
+            records_per_file: int,
+            overwrite: bool = False,
+            workers: int = 1,
     ) -> None:
         initialize_logger()
 
@@ -63,12 +62,12 @@ class TensorflowTemplate:
 
     @staticmethod
     def train(
-        tfrecords_dir: str,
-        output_dir: str,
-        batch_size: int,
-        epochs: int,
-        lr: float,
-        functional: bool = True,
+            tfrecords_dir: str,
+            output_dir: str,
+            batch_size: int,
+            epochs: int,
+            lr: float,
+            functional: bool = True,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -77,48 +76,28 @@ class TensorflowTemplate:
         logging.info(f'Batch size: {batch_size}')
         logging.info(f'Learning rate: {lr}')
 
-        tfrecords_dir = Path(tfrecords_dir).expanduser()
-
         # TODO: update feature size
         feature_size = 5
-        codec = NpyCodec(feature_size)
+        tfrecord_loader = TFRecordLoader(tfrecords_dir, feature_size)
 
-        train_pattern = str(tfrecords_dir / 'train' / '*.tfrecords')
-        train_paths = tf.data.Dataset.list_files(train_pattern, shuffle=True)
-        train_dataset = tf.data.TFRecordDataset(filenames=train_paths)
-        train_dataset = train_dataset.map(
-            map_func=codec.decode, num_parallel_calls=os.cpu_count()
-        )
-        prefetch_size = 128
-        shuffle_size = int(1e6)
-        train_dataset = train_dataset.shuffle(
-            shuffle_size, reshuffle_each_iteration=True
-        )
-        train_dataset = train_dataset.batch(batch_size=batch_size).prefetch(
-            buffer_size=prefetch_size
+        train_dataset = tfrecord_loader.get_split_dataset('train', batch_size)
+        dev_dataset = (
+            tfrecord_loader.get_split_dataset('dev', batch_size)
+            if tfrecord_loader.check_split('dev')
+            else None
         )
 
-        if (tfrecords_dir / 'dev').is_dir():
-            dev_pattern = str(tfrecords_dir / 'dev' / '*.tfrecords')
-            dev_paths = tf.data.Dataset.list_files(dev_pattern, shuffle=True)
-            dev_dataset = tf.data.TFRecordDataset(filenames=dev_paths)
-            dev_dataset = dev_dataset.map(
-                map_func=codec.decode, num_parallel_calls=os.cpu_count()
-            )
-            prefetch_size = 128
-            dev_dataset = dev_dataset.batch(batch_size=batch_size).prefetch(
-                buffer_size=prefetch_size
-            )
-        else:
-            dev_dataset = None
+        # TODO: update scheduler
+        decay_steps = 40
+        scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+            lr, decay_steps=decay_steps, decay_rate=0.8, staircase=True
+        )
 
         # TODO: update optimizer
         optimizer = tf.keras.optimizers.SGD(
-            learning_rate=lr, momentum=0.9, nesterov=True
+            learning_rate=scheduler, momentum=0.9, nesterov=True
         )
-
-        # TODO REAL: how to use weight decay
-        # logging.info(f'Optimizer: {self._get_optimizer_info(optimizer)}')
+        logging.info(f'Optimizer: {optimizer.get_config()}')
 
         criterion = tf.keras.losses.MeanSquaredError()
         metric = tf.keras.metrics.MeanSquaredError()
@@ -136,12 +115,12 @@ class TensorflowTemplate:
 
     @staticmethod
     def restore(
-        checkpoint: str,
-        tensor_dir: str,
-        output_dir: str,
-        batch_size: int,
-        epochs: int,
-        lr: float,
+            checkpoint: str,
+            tensor_dir: str,
+            output_dir: str,
+            batch_size: int,
+            epochs: int,
+            lr: float,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -178,7 +157,7 @@ class TensorflowTemplate:
 
     @staticmethod
     def evaluate(
-        checkpoint: str, tensor_dir: str, batch_size: int
+            checkpoint: str, tensor_dir: str, batch_size: int
     ) -> Tuple[float, float]:
         dev_dataset = TorchDataset(tensor_dir, 'dev')
         dev_loader = DataLoader(
