@@ -11,7 +11,7 @@ class LinearRegression(tf.keras.Model):
         self.fc = layers.Dense(1, kernel_initializer='he_normal')
 
     def call(self, inputs: tf.Tensor, **kwargs) -> tf.Tensor:
-        prediction = tf.squeeze(self.fc(inputs))
+        prediction = tf.squeeze(self.fc(inputs), axis=-1)
         return prediction
 
 

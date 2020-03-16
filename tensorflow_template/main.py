@@ -125,10 +125,10 @@ class TensorflowTemplate:
 
         if functional:
             model = linear_regression(feature_size)
-            model.compile(optimizer=optimizer, loss=criterion, metrics=[metric])
         else:
             model = LinearRegression()
 
+        model.compile(optimizer=optimizer, loss=criterion, metrics=[metric])
         history = model.fit(train_dataset, epochs=epochs, validation_data=dev_dataset)
 
         # return best_checkpoint
