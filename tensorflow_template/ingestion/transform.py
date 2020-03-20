@@ -2,8 +2,6 @@ from typing import Any, Callable, Sequence, Dict
 
 import numpy as np
 
-from .codec import Codec
-
 
 class Normalize:
     def __init__(self, mean: Sequence[float], std: Sequence[float]):
@@ -17,17 +15,6 @@ class Normalize:
 
     def __repr__(self) -> str:
         return self.__class__.__name__ + f'(mean={self.mean}, std={self.std})'
-
-
-class Serialize:
-    def __init__(self, codec: Codec):
-        self.codec = codec
-
-    def __call__(self, example: Dict[str, Any]) -> bytes:
-        return self.codec.encode(example)
-
-    def __repr__(self) -> str:
-        return self.__class__.__name__ + f'(codec={repr(self.codec)})'
 
 
 class Compose:

@@ -48,27 +48,16 @@ class CLI:
             'split', type=str, help='Split name', choices=('train', 'dev', 'test')
         )
         parser.add_argument(
-            '--records-per-file',
-            type=int,
-            default=20,
-            help='Maximum number of records in every TFRecord file',
-        )
-        parser.add_argument(
             '--overwrite',
             action='store_true',
             help='Overwrite existing TFRecord files if present',
-        )
-        parser.add_argument(
-            '--workers', type=int, default=1, help='Number of parallel workers used'
         )
 
         args = parser.parse_args(sys.argv[2:])
         TensorflowTemplate.ingest(
             args.data_dir,
             args.split,
-            args.records_per_file,
             args.overwrite,
-            args.workers,
         )
         print(f'Ingestion completed')
 

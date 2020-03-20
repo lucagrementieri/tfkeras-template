@@ -49,6 +49,7 @@ setup(
     packages=find_packages(exclude=['build', 'data', 'dist', 'docs', 'tests']),
     python_requires='>=3.6',
     install_requires=[
+        'numpy >= 1.17',
         'tensorboard >= 2.0',
         'tensorflow >= 2.0',
         'tqdm >= 4.23',

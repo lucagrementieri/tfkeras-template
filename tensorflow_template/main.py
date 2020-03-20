@@ -4,10 +4,11 @@ import time
 from pathlib import Path
 from typing import Tuple
 
+import numpy as np
 import tensorflow as tf
 
-from .ingestion import NpyDataset, NpyCodec, TFRecordWriter, TFRecordLoader
-from .ingestion.transform import Normalize, Compose, Serialize
+from .ingestion import NpyDataset
+from .ingestion.transform import Normalize, Compose
 from .models.linear_regression import LinearRegression, linear_regression
 from .utils import initialize_logger
 
@@ -20,54 +21,37 @@ class TensorflowTemplate:
 
     @staticmethod
     def ingest(
-            root_dir: str,
-            split: str,
-            records_per_file: int,
-            overwrite: bool = False,
-            workers: int = 1,
+        root_dir: str,
+        split: str,
+        overwrite: bool = False,
     ) -> None:
         initialize_logger()
 
         # TODO: update transformations
-        transform = Compose(
-            [
-                # TODO: replace values with statistics computed with dataset_statistics.py
-                Normalize(
-                    mean=(0.502, 0.475, 0.475, 0.534, 0.493),
-                    std=(0.276, 0.270, 0.274, 0.295, 0.299),
-                ),
-                # TODO: update feature size
-                Serialize(NpyCodec(5)),
-            ]
+        # TODO: replace values with statistics computed with dataset_statistics.py
+        transform = Normalize(
+            mean=(0.502, 0.475, 0.475, 0.534, 0.493),
+            std=(0.276, 0.270, 0.274, 0.295, 0.299),
         )
 
         dataset = NpyDataset(root_dir, split, transform=transform)
-        split_path = Path(root_dir) / 'tfrecords' / split
-        if split_path.exists() and not overwrite:
-            raise FileExistsError(f"File exists: '{split_path}'")
+        split_path = Path(root_dir) / 'npy' / split
+        split_path.mkdir(parents=True, exist_ok=overwrite)
 
-        writer = TFRecordWriter(split_path, records_per_file, overwrite, workers)
-        writer.start()
-        writer.write(dataset)
-        writer.close()
-
-        for worker_dir in split_path.iterdir():
-            if not worker_dir.is_dir():
-                continue
-            for source in worker_dir.iterdir():
-                source.replace(source.parent.parent / source.name)
-            worker_dir.rmdir()
+        for sample in dataset:
+            filename = sample.pop('filename')
+            np.savez_compressed(split_path / filename, **sample)
 
         logging.info('Ingestion completed')
 
     @staticmethod
     def train(
-            tfrecords_dir: str,
-            output_dir: str,
-            batch_size: int,
-            epochs: int,
-            lr: float,
-            functional: bool = True,
+        tfrecords_dir: str,
+        output_dir: str,
+        batch_size: int,
+        epochs: int,
+        lr: float,
+        functional: bool = True,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -115,12 +99,12 @@ class TensorflowTemplate:
 
     @staticmethod
     def restore(
-            checkpoint: str,
-            tensor_dir: str,
-            output_dir: str,
-            batch_size: int,
-            epochs: int,
-            lr: float,
+        checkpoint: str,
+        tensor_dir: str,
+        output_dir: str,
+        batch_size: int,
+        epochs: int,
+        lr: float,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -157,7 +141,7 @@ class TensorflowTemplate:
 
     @staticmethod
     def evaluate(
-            checkpoint: str, tensor_dir: str, batch_size: int
+        checkpoint: str, tensor_dir: str, batch_size: int
     ) -> Tuple[float, float]:
         dev_dataset = TorchDataset(tensor_dir, 'dev')
         dev_loader = DataLoader(

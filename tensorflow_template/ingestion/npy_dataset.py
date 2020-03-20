@@ -7,6 +7,7 @@ import pandas as pd
 from .iterable_dataset import IterableDataset
 
 
+# TODO update dataset class
 class NpyDataset(IterableDataset):
     def __init__(
         self,
@@ -35,7 +36,7 @@ class NpyDataset(IterableDataset):
         example = {
             'features': np.load(filepath),
             'target': self.dataframe.iloc[idx, 0],
-            'filename': filepath.name,
+            'filename': filepath.stem,
         }
 
         if self.transform:
