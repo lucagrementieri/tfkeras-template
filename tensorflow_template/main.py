@@ -20,11 +20,7 @@ class TensorflowTemplate:
         pass
 
     @staticmethod
-    def ingest(
-        root_dir: str,
-        split: str,
-        overwrite: bool = False,
-    ) -> None:
+    def ingest(root_dir: str, split: str, overwrite: bool = False) -> None:
         initialize_logger()
 
         # TODO: update transformations
@@ -46,12 +42,12 @@ class TensorflowTemplate:
 
     @staticmethod
     def train(
-        tfrecords_dir: str,
-        output_dir: str,
-        batch_size: int,
-        epochs: int,
-        lr: float,
-        functional: bool = True,
+            tfrecords_dir: str,
+            output_dir: str,
+            batch_size: int,
+            epochs: int,
+            lr: float,
+            functional: bool = True,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -78,6 +74,7 @@ class TensorflowTemplate:
         )
 
         # TODO: update optimizer
+        # TODO: remember that state-of-the-art optimizers are included in tfa.optimizers
         optimizer = tf.keras.optimizers.SGD(
             learning_rate=scheduler, momentum=0.9, nesterov=True
         )
@@ -99,12 +96,12 @@ class TensorflowTemplate:
 
     @staticmethod
     def restore(
-        checkpoint: str,
-        tensor_dir: str,
-        output_dir: str,
-        batch_size: int,
-        epochs: int,
-        lr: float,
+            checkpoint: str,
+            tensor_dir: str,
+            output_dir: str,
+            batch_size: int,
+            epochs: int,
+            lr: float,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -141,7 +138,7 @@ class TensorflowTemplate:
 
     @staticmethod
     def evaluate(
-        checkpoint: str, tensor_dir: str, batch_size: int
+            checkpoint: str, tensor_dir: str, batch_size: int
     ) -> Tuple[float, float]:
         dev_dataset = TorchDataset(tensor_dir, 'dev')
         dev_loader = DataLoader(
