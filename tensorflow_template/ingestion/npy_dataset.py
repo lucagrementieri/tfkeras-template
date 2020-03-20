@@ -7,7 +7,7 @@ import pandas as pd
 from .iterable_dataset import IterableDataset
 
 
-# TODO update dataset class
+# TODO update class to manage your data
 class NpyDataset(IterableDataset):
     def __init__(
         self,

@@ -67,7 +67,7 @@ class CLI:
         parser = argparse.ArgumentParser(description='Train the model')
         #  TODO: update parameters and default values
         parser.add_argument(
-            'tfrecords_dir', metavar='tfrecords-dir', type=str, help='TFRecords directory'
+            'npy_dir', metavar='npy-dir', type=str, help='Npy directory'
         )
         parser.add_argument(
             '--output-dir', type=str, help='Output directory', default='./'
@@ -80,7 +80,7 @@ class CLI:
 
         args = parser.parse_args(sys.argv[2:])
         best_checkpoint = TensorflowTemplate.train(
-            args.tfrecords_dir, args.output_dir, args.batch_size, args.epochs, args.lr
+            args.npy_dir, args.output_dir, args.batch_size, args.epochs, args.lr
         )
         print(f'Best checkpoint saved at {best_checkpoint}')
 

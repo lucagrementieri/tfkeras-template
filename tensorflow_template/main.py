@@ -7,7 +7,7 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 
-from .ingestion import NpyDataset
+from .ingestion import NpyDataset, NpyLoader
 from .ingestion.transform import Normalize, Compose
 from .models.linear_regression import LinearRegression, linear_regression
 from .utils import initialize_logger
@@ -42,12 +42,12 @@ class TensorflowTemplate:
 
     @staticmethod
     def train(
-            tfrecords_dir: str,
-            output_dir: str,
-            batch_size: int,
-            epochs: int,
-            lr: float,
-            functional: bool = True,
+        npy_dir: str,
+        output_dir: str,
+        batch_size: int,
+        epochs: int,
+        lr: float,
+        functional: bool = True,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -56,14 +56,12 @@ class TensorflowTemplate:
         logging.info(f'Batch size: {batch_size}')
         logging.info(f'Learning rate: {lr}')
 
-        # TODO: update feature size
-        feature_size = 5
-        tfrecord_loader = TFRecordLoader(tfrecords_dir, feature_size)
+        npy_loader = NpyLoader(npy_dir)
 
-        train_dataset = tfrecord_loader.get_split_dataset('train', batch_size)
+        train_dataset = npy_loader.get_split_dataset('train', batch_size)
         dev_dataset = (
-            tfrecord_loader.get_split_dataset('dev', batch_size)
-            if tfrecord_loader.check_split('dev')
+            npy_loader.get_split_dataset('dev', batch_size)
+            if npy_loader.check_split('dev')
             else None
         )
 
@@ -84,6 +82,8 @@ class TensorflowTemplate:
         metric = tf.keras.metrics.MeanSquaredError()
 
         if functional:
+            # TODO: update feature size
+            feature_size = 5
             model = linear_regression(feature_size)
         else:
             model = LinearRegression()
@@ -96,12 +96,12 @@ class TensorflowTemplate:
 
     @staticmethod
     def restore(
-            checkpoint: str,
-            tensor_dir: str,
-            output_dir: str,
-            batch_size: int,
-            epochs: int,
-            lr: float,
+        checkpoint: str,
+        tensor_dir: str,
+        output_dir: str,
+        batch_size: int,
+        epochs: int,
+        lr: float,
     ) -> str:
         run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
@@ -138,7 +138,7 @@ class TensorflowTemplate:
 
     @staticmethod
     def evaluate(
-            checkpoint: str, tensor_dir: str, batch_size: int
+        checkpoint: str, tensor_dir: str, batch_size: int
     ) -> Tuple[float, float]:
         dev_dataset = TorchDataset(tensor_dir, 'dev')
         dev_loader = DataLoader(
