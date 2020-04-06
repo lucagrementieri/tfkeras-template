@@ -12,7 +12,7 @@ class CLI:
         parser = argparse.ArgumentParser(
             description='Command line interface for Tensorflow template',
             usage=(
-                'python3 cli.py <command> [<args>]\n'
+                'python3 -m tensorflow_template <command> [<args>]\n'
                 '\n'
                 'ingest      Ingest data\n'
                 'train       Train the model\n'
@@ -24,7 +24,7 @@ class CLI:
             'command',
             type=str,
             help='Sub-command to run',
-            choices=('ingest', 'train', 'restore', 'eval', 'test'),
+            choices=('ingest', 'train', 'eval', 'test'),
         )
 
         args = parser.parse_args(sys.argv[1:2])
@@ -38,7 +38,10 @@ class CLI:
     @staticmethod
     def ingest() -> None:
         #  TODO: update description coherently with usage in __init__
-        parser = argparse.ArgumentParser(description='Ingest data')
+        parser = argparse.ArgumentParser(
+            description='Ingest data',
+            usage='python3 -m tensorflow_template ingest data-dir split [--overwrite]',
+        )
         #  TODO: update parameters and default values
         parser.add_argument(
             'data_dir', metavar='data-dir', type=str, help='Data directory'
@@ -59,7 +62,12 @@ class CLI:
     @staticmethod
     def train() -> None:
         #  TODO: update description coherently with usage in __init__
-        parser = argparse.ArgumentParser(description='Train the model')
+        parser = argparse.ArgumentParser(
+            description='Train the model',
+            usage='python3 -m tensorflow_template train npz-dir '
+            '[--output-dir OUTPUT-DIR --batch-size BATCH-SIZE --epochs EPOCHS '
+            '--lr LR --checkpoint CHECKPOINT --imperative]',
+        )
         #  TODO: update parameters and default values
         parser.add_argument(
             'npz_dir', metavar='npz-dir', type=str, help='Ingested data directory'
@@ -73,10 +81,10 @@ class CLI:
             '--lr', type=float, default=0.1, help='Initial learning rate'
         )
         parser.add_argument(
-            '--imperative', action='store_true', help='Imperative model'
+            '--checkpoint', type=str, help='Path to a weight checkpoint'
         )
         parser.add_argument(
-            '--checkpoint', type=str, help='Path to a weight checkpoint'
+            '--imperative', action='store_true', help='Imperative model'
         )
 
         args = parser.parse_args(sys.argv[2:])
@@ -86,14 +94,18 @@ class CLI:
             args.batch_size,
             args.epochs,
             args.lr,
-            args.imperative,
             args.checkpoint,
+            args.imperative,
         )
 
     @staticmethod
     def eval() -> None:
         #  TODO: update description coherently with usage in __init__
-        parser = argparse.ArgumentParser(description='Evaluate the model')
+        parser = argparse.ArgumentParser(
+            description='Evaluate the model',
+            usage='python3 -m tensorflow_template eval checkpoint npz-dir '
+            '[--batch-size BATCH-SIZE --imperative]',
+        )
         #  TODO: update parameters and default values
         parser.add_argument('checkpoint', type=str, help='Checkpoint path')
         parser.add_argument(
@@ -113,7 +125,10 @@ class CLI:
     @staticmethod
     def test() -> None:
         #  TODO: update description coherently with usage in __init__
-        parser = argparse.ArgumentParser(description='Test the model')
+        parser = argparse.ArgumentParser(
+            description='Test the model',
+            usage='python3 -m tensorflow_template test cehckpoint data-path [--imperative]',
+        )
         #  TODO: update parameters and default values
         parser.add_argument('checkpoint', type=str, help='Checkpoint path')
         parser.add_argument(

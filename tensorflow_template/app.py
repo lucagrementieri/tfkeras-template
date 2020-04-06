@@ -42,8 +42,8 @@ class TensorflowTemplate:
         batch_size: int,
         epochs: int,
         lr: float,
-        imperative: bool = False,
         checkpoint: Optional[str] = None,
+        imperative: bool = False,
     ) -> None:
         run_dir = Path(output_dir) / str(int(time.time()))
         checkpoint_dir = run_dir / 'checkpoints'
