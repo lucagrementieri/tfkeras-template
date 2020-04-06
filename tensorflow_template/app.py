@@ -7,7 +7,7 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 
-from .ingestion import NpyDataset, NpyLoader
+from .ingestion import NpyDataset, NpzLoader
 from .ingestion.transform import Normalize, Compose
 from .models.linear_regression import LinearRegression, linear_regression
 from .utils import initialize_logger
@@ -31,7 +31,7 @@ class TensorflowTemplate:
         )
 
         dataset = NpyDataset(root_dir, split, transform=transform)
-        split_path = Path(root_dir) / 'npy' / split
+        split_path = Path(root_dir) / 'npz' / split
         split_path.mkdir(parents=True, exist_ok=overwrite)
 
         for sample in dataset:
@@ -42,26 +42,27 @@ class TensorflowTemplate:
 
     @staticmethod
     def train(
-        npy_dir: str,
+        npz_dir: str,
         output_dir: str,
         batch_size: int,
         epochs: int,
         lr: float,
-        functional: bool = True,
-    ) -> str:
-        run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
-        (run_dir / 'checkpoints').mkdir(parents=True)
+        imperative: bool = False,
+    ) -> None:
+        run_dir = Path(output_dir) / str(int(time.time()))
+        checkpoint_dir = run_dir / 'checkpoints'
+        checkpoint_dir.mkdir(parents=True)
         initialize_logger(run_dir)
 
         logging.info(f'Batch size: {batch_size}')
         logging.info(f'Learning rate: {lr}')
 
-        npy_loader = NpyLoader(npy_dir)
+        npz_loader = NpzLoader(npz_dir)
 
-        train_dataset = npy_loader.get_split_dataset('train', batch_size)
+        train_dataset = npz_loader.get_split_dataset('train', batch_size)
         dev_dataset = (
-            npy_loader.get_split_dataset('dev', batch_size)
-            if npy_loader.check_split('dev')
+            npz_loader.get_split_dataset('dev', batch_size)
+            if npz_loader.check_split('dev')
             else None
         )
 
@@ -81,29 +82,43 @@ class TensorflowTemplate:
         criterion = tf.keras.losses.MeanSquaredError()
         metric = tf.keras.metrics.MeanSquaredError()
 
-        if functional:
+        if imperative:
+            model = LinearRegression()
+        else:
             # TODO: update feature size
             feature_size = 5
             model = linear_regression(feature_size)
-        else:
-            model = LinearRegression()
-
         model.compile(optimizer=optimizer, loss=criterion, metrics=[metric])
-        history = model.fit(train_dataset, epochs=epochs, validation_data=dev_dataset)
 
-        # return best_checkpoint
-        return history
+        checkpoint_path = checkpoint_dir / 'checkpoint-{epoch:02d}-{val_loss:.2f}.hdf5'
+        callbacks = [
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=str(checkpoint_path),
+                monitor='val_loss',
+                save_best_only=True,
+                mode='min',
+            ),
+            tf.keras.callbacks.TensorBoard(
+                log_dir=str(run_dir / 'logs'), update_freq='epoch', write_graph=False
+            ),
+        ]
+        _ = model.fit(
+            train_dataset,
+            epochs=epochs,
+            callbacks=callbacks,
+            validation_data=dev_dataset,
+        )
 
     @staticmethod
     def restore(
         checkpoint: str,
-        tensor_dir: str,
+        npz_dir: str,
         output_dir: str,
         batch_size: int,
         epochs: int,
         lr: float,
     ) -> str:
-        run_dir = Path(output_dir) / 'runs' / str(int(time.time()))
+        run_dir = Path(output_dir) / str(int(time.time()))
         (run_dir / 'checkpoints').mkdir(parents=True)
         initialize_logger(run_dir)
 

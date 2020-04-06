@@ -5,15 +5,15 @@ import tensorflow as tf
 
 
 # TODO: update class to manage your data
-class NpyLoader:
-    def __init__(self, npy_dir: str):
-        self.npy_dir = Path(npy_dir).expanduser()
+class NpzLoader:
+    def __init__(self, npz_dir: str):
+        self.npz_dir = Path(npz_dir).expanduser()
 
     def check_split(self, split: str) -> bool:
-        return (self.npy_dir / split).is_dir()
+        return (self.npz_dir / split).is_dir()
 
     def get_split_dataset(self, split: str, batch_size: int) -> tf.data.Dataset:
-        split_dir = self.npy_dir / split
+        split_dir = self.npz_dir / split
         features = []
         targets = []
         for path in split_dir.glob('*.npz'):

@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from tensorflow_template.main import TensorflowTemplate  # TODO: update
+from tensorflow_template.app import TensorflowTemplate  # TODO: update
 
 
 class CLI:
@@ -54,11 +54,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        TensorflowTemplate.ingest(
-            args.data_dir,
-            args.split,
-            args.overwrite,
-        )
+        TensorflowTemplate.ingest(args.data_dir, args.split, args.overwrite)
         print(f'Ingestion completed')
 
     @staticmethod
@@ -67,22 +63,24 @@ class CLI:
         parser = argparse.ArgumentParser(description='Train the model')
         #  TODO: update parameters and default values
         parser.add_argument(
-            'npy_dir', metavar='npy-dir', type=str, help='Npy directory'
+            'npz_dir', metavar='npz-dir', type=str, help='Ingested data directory'
         )
         parser.add_argument(
-            '--output-dir', type=str, help='Output directory', default='./'
+            '--output-dir', type=str, help='Output directory', default='./runs'
         )
         parser.add_argument('--batch-size', type=int, default=20, help='Batch size')
         parser.add_argument('--epochs', type=int, default=30, help='Number of epochs')
         parser.add_argument(
             '--lr', type=float, default=0.1, help='Initial learning rate'
         )
+        parser.add_argument(
+            '--imperative', action='store_true', help='Imperative model'
+        )
 
         args = parser.parse_args(sys.argv[2:])
-        best_checkpoint = TensorflowTemplate.train(
-            args.npy_dir, args.output_dir, args.batch_size, args.epochs, args.lr
+        TensorflowTemplate.train(
+            args.npz_dir, args.output_dir, args.batch_size, args.epochs, args.lr, args.imperative
         )
-        print(f'Best checkpoint saved at {best_checkpoint}')
 
     @staticmethod
     def restore() -> None:
@@ -93,10 +91,10 @@ class CLI:
         #  TODO: update parameters and default values
         parser.add_argument('checkpoint', type=str, help='Checkpoint path')
         parser.add_argument(
-            'tensor_dir', metavar='tensor-dir', type=str, help='Tensors directory'
+            'npz_dir', metavar='npz-dir', type=str, help='Ingested data directory'
         )
         parser.add_argument(
-            '--output-dir', type=str, help='Output directory', default='./'
+            '--output-dir', type=str, help='Output directory', default='./runs'
         )
         parser.add_argument('--batch-size', type=int, default=20, help='Batch size')
         parser.add_argument('--epochs', type=int, default=40, help='Number of epochs')
@@ -105,15 +103,14 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        best_checkpoint = TensorflowTemplate.restore(
+        TensorflowTemplate.restore(
             args.checkpoint,
-            args.tensor_dir,
+            args.npz_dir,
             args.output_dir,
             args.batch_size,
             args.epochs,
             args.lr,
         )
-        print(f'Best checkpoint saved at {best_checkpoint}')
 
     @staticmethod
     def eval() -> None:
@@ -122,13 +119,13 @@ class CLI:
         #  TODO: update parameters and default values
         parser.add_argument('checkpoint', type=str, help='Checkpoint path')
         parser.add_argument(
-            'tensor_dir', metavar='tensor-dir', type=str, help='Tensors directory'
+            'npz_dir', metavar='npz-dir', type=str, help='Ingested data directory'
         )
         parser.add_argument('--batch-size', type=int, default=20, help='Batch size')
 
         args = parser.parse_args(sys.argv[2:])
         val_loss, val_metric = TensorflowTemplate.evaluate(
-            args.checkpoint, args.tensor_dir, args.batch_size
+            args.checkpoint, args.npz_dir, args.batch_size
         )
         print(f'Validation - Loss: {val_loss:.4f} - Metric: {val_metric:.4f}')
 
@@ -149,6 +146,3 @@ class CLI:
 
 if __name__ == '__main__':
     CLI()
-    # TODO REAL remove warnings
-    # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
