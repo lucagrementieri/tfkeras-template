@@ -15,6 +15,17 @@ from .utils import initialize_logger
 # TODO: update class name
 class TensorflowTemplate:
     @staticmethod
+    def build_model(
+        feature_size: Optional[int] = None,
+        checkpoint: Optional[str] = None,
+        imperative: bool = False,
+    ) -> tf.keras.Model:
+        model = LinearRegression() if imperative else linear_regression(feature_size)
+        if checkpoint is not None:
+            model.load_weights(checkpoint)
+        return model
+
+    @staticmethod
     def ingest(root_dir: str, split: str, overwrite: bool = False) -> None:
         initialize_logger()
 
@@ -77,15 +88,9 @@ class TensorflowTemplate:
 
         criterion = tf.keras.losses.MeanSquaredError()
         metric = tf.keras.metrics.MeanSquaredError()
-
-        if imperative:
-            model = LinearRegression()
-        else:
-            # TODO: update feature size
-            feature_size = 5
-            model = linear_regression(feature_size)
-        if checkpoint is not None:
-            model.load_weights(checkpoint)
+        # TODO: update feature size
+        feature_size = 5
+        model = TensorflowTemplate.build_model(feature_size, checkpoint, imperative)
         model.compile(optimizer=optimizer, loss=criterion, metrics=[metric])
 
         checkpoint_path = checkpoint_dir / 'checkpoint-{epoch:02d}-{val_loss:.2f}.hdf5'
@@ -115,13 +120,9 @@ class TensorflowTemplate:
         npz_loader = NpzLoader(npz_dir)
         dev_dataset = npz_loader.get_split_dataset('dev', batch_size)
 
-        if imperative:
-            model = LinearRegression()
-        else:
-            # TODO: update feature size
-            feature_size = 5
-            model = linear_regression(feature_size)
-        model.load_weights(checkpoint)
+        # TODO: update feature size
+        feature_size = 5
+        model = TensorflowTemplate.build_model(feature_size, checkpoint, imperative)
         criterion = tf.keras.losses.MeanSquaredError()
         metric = tf.keras.metrics.MeanSquaredError()
         model.compile(loss=criterion, metrics=[metric])
@@ -131,13 +132,9 @@ class TensorflowTemplate:
     @staticmethod
     def test(checkpoint: str, data_path: str, imperative: bool = False) -> float:
         initialize_logger()
-        if imperative:
-            model = LinearRegression()
-        else:
-            # TODO: update feature size
-            feature_size = 5
-            model = linear_regression(feature_size)
-        model.load_weights(checkpoint)
+        # TODO: update feature size
+        feature_size = 5
+        model = TensorflowTemplate.build_model(feature_size, checkpoint, imperative)
 
         # TODO: update transformations to be coherent with what was used during training
         transform = Normalize(
