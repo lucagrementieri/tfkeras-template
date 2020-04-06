@@ -119,9 +119,14 @@ class CLI:
         parser.add_argument(
             'data_path', metavar='data-path', type=str, help='Data file path'
         )
+        parser.add_argument(
+            '--imperative', action='store_true', help='Imperative model'
+        )
 
         args = parser.parse_args(sys.argv[2:])
-        prediction = TensorflowTemplate.test(args.checkpoint, args.data_path)
+        prediction = TensorflowTemplate.test(
+            args.checkpoint, args.data_path, args.imperative
+        )
         print(f'Output: {prediction:.4f}')
 
 

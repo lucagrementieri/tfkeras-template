@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from .ingestion import NpyDataset, NpzLoader
-from .ingestion.transform import Normalize, Compose
+from .ingestion.transform import Normalize
 from .models.linear_regression import LinearRegression, linear_regression
 from .utils import initialize_logger
 
@@ -129,25 +129,21 @@ class TensorflowTemplate:
         return tuple(results)
 
     @staticmethod
-    def test(checkpoint: str, data_path: str) -> float:
+    def test(checkpoint: str, data_path: str, imperative: bool = False) -> float:
         initialize_logger()
-        model = TensorflowTemplate._load_model(checkpoint)
+        if imperative:
+            model = LinearRegression()
+        else:
+            # TODO: update feature size
+            feature_size = 5
+            model = linear_regression(feature_size)
+        model.load_weights(checkpoint)
 
         # TODO: update transformations to be coherent with what was used during training
-        transform = Compose(
-            [
-                ToTensor(),
-                # TODO: if you need normalization, replace values with statistics computed by
-                #  dataset_statistics.py ; else remove it.
-                Normalize(
-                    mean=(0.502, 0.475, 0.475, 0.534, 0.493),
-                    std=(0.276, 0.270, 0.274, 0.295, 0.299),
-                ),
-            ]
+        transform = Normalize(
+            mean=(0.502, 0.475, 0.475, 0.534, 0.493),
+            std=(0.276, 0.270, 0.274, 0.295, 0.299),
         )
-
-        features = {
-            'features': transform(torch.load(data_path))
-        }  # TODO: update data loading
-        prediction = model.predict(features)
-        return prediction
+        example = transform({'features': np.expand_dims(np.load(data_path), axis=0)})
+        prediction = model.predict(example['features'], batch_size=1)
+        return float(prediction[0])
