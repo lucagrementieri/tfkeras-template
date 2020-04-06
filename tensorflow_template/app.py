@@ -1,8 +1,7 @@
 import logging
-import multiprocessing
 import time
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -15,10 +14,6 @@ from .utils import initialize_logger
 
 # TODO: update class name
 class TensorflowTemplate:
-    @staticmethod
-    def _load_model(checkpoint: str):
-        pass
-
     @staticmethod
     def ingest(root_dir: str, split: str, overwrite: bool = False) -> None:
         initialize_logger()
@@ -48,6 +43,7 @@ class TensorflowTemplate:
         epochs: int,
         lr: float,
         imperative: bool = False,
+        checkpoint: Optional[str] = None,
     ) -> None:
         run_dir = Path(output_dir) / str(int(time.time()))
         checkpoint_dir = run_dir / 'checkpoints'
@@ -88,6 +84,8 @@ class TensorflowTemplate:
             # TODO: update feature size
             feature_size = 5
             model = linear_regression(feature_size)
+        if checkpoint is not None:
+            model.load_weights(checkpoint)
         model.compile(optimizer=optimizer, loss=criterion, metrics=[metric])
 
         checkpoint_path = checkpoint_dir / 'checkpoint-{epoch:02d}-{val_loss:.2f}.hdf5'
@@ -96,6 +94,7 @@ class TensorflowTemplate:
                 filepath=str(checkpoint_path),
                 monitor='val_loss',
                 save_best_only=True,
+                save_weights_only=True,
                 mode='min',
             ),
             tf.keras.callbacks.TensorBoard(
@@ -110,63 +109,24 @@ class TensorflowTemplate:
         )
 
     @staticmethod
-    def restore(
-        checkpoint: str,
-        npz_dir: str,
-        output_dir: str,
-        batch_size: int,
-        epochs: int,
-        lr: float,
-    ) -> str:
-        run_dir = Path(output_dir) / str(int(time.time()))
-        (run_dir / 'checkpoints').mkdir(parents=True)
-        initialize_logger(run_dir)
-
-        logging.info(f'Checkpoint: {checkpoint}')
-        logging.info(f'Batch size: {batch_size}')
-        logging.info(f'Learning rate: {lr}')
-
-        train_dataset = TorchDataset(tensor_dir, 'train')
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=batch_size,
-            shuffle=True,
-            num_workers=multiprocessing.cpu_count(),
-            pin_memory=True,
-        )
-
-        if (Path(tensor_dir) / 'dev').is_dir():
-            dev_dataset = TorchDataset(tensor_dir, 'dev')
-            dev_loader = DataLoader(
-                dev_dataset,
-                batch_size=batch_size,
-                shuffle=False,
-                num_workers=multiprocessing.cpu_count(),
-                pin_memory=True,
-            )
-        else:
-            dev_loader = None
-
-        model = TensorflowTemplate._load_model(checkpoint)
-        best_checkpoint = model.fit(run_dir, train_loader, epochs, lr, dev_loader)
-        return best_checkpoint
-
-    @staticmethod
     def evaluate(
-        checkpoint: str, tensor_dir: str, batch_size: int
+        checkpoint: str, npz_dir: str, batch_size: int, imperative: bool = False
     ) -> Tuple[float, float]:
-        dev_dataset = TorchDataset(tensor_dir, 'dev')
-        dev_loader = DataLoader(
-            dev_dataset,
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=multiprocessing.cpu_count(),
-            pin_memory=True,
-        )
+        npz_loader = NpzLoader(npz_dir)
+        dev_dataset = npz_loader.get_split_dataset('dev', batch_size)
 
-        model = TensorflowTemplate._load_model(checkpoint)
-        val_loss, val_metric = model.eval(dev_loader)
-        return val_loss, val_metric
+        if imperative:
+            model = LinearRegression()
+        else:
+            # TODO: update feature size
+            feature_size = 5
+            model = linear_regression(feature_size)
+        model.load_weights(checkpoint)
+        criterion = tf.keras.losses.MeanSquaredError()
+        metric = tf.keras.metrics.MeanSquaredError()
+        model.compile(loss=criterion, metrics=[metric])
+        results = model.evaluate(dev_dataset)
+        return tuple(results)
 
     @staticmethod
     def test(checkpoint: str, data_path: str) -> float:

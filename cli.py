@@ -16,7 +16,6 @@ class CLI:
                 '\n'
                 'ingest      Ingest data\n'
                 'train       Train the model\n'
-                'restore     Restore training from a checkpoint\n'
                 'eval        Evaluate the model\n'
                 'test        Test the model\n'
             ),
@@ -76,40 +75,19 @@ class CLI:
         parser.add_argument(
             '--imperative', action='store_true', help='Imperative model'
         )
+        parser.add_argument(
+            '--checkpoint', type=str, help='Path to a weight checkpoint'
+        )
 
         args = parser.parse_args(sys.argv[2:])
         TensorflowTemplate.train(
-            args.npz_dir, args.output_dir, args.batch_size, args.epochs, args.lr, args.imperative
-        )
-
-    @staticmethod
-    def restore() -> None:
-        #  TODO: update description coherently with usage in __init__
-        parser = argparse.ArgumentParser(
-            description='Restore training from a checkpoint'
-        )
-        #  TODO: update parameters and default values
-        parser.add_argument('checkpoint', type=str, help='Checkpoint path')
-        parser.add_argument(
-            'npz_dir', metavar='npz-dir', type=str, help='Ingested data directory'
-        )
-        parser.add_argument(
-            '--output-dir', type=str, help='Output directory', default='./runs'
-        )
-        parser.add_argument('--batch-size', type=int, default=20, help='Batch size')
-        parser.add_argument('--epochs', type=int, default=40, help='Number of epochs')
-        parser.add_argument(
-            '--lr', type=float, default=0.1, help='Initial learning rate'
-        )
-
-        args = parser.parse_args(sys.argv[2:])
-        TensorflowTemplate.restore(
-            args.checkpoint,
             args.npz_dir,
             args.output_dir,
             args.batch_size,
             args.epochs,
             args.lr,
+            args.imperative,
+            args.checkpoint,
         )
 
     @staticmethod
@@ -122,10 +100,13 @@ class CLI:
             'npz_dir', metavar='npz-dir', type=str, help='Ingested data directory'
         )
         parser.add_argument('--batch-size', type=int, default=20, help='Batch size')
+        parser.add_argument(
+            '--imperative', action='store_true', help='Imperative model'
+        )
 
         args = parser.parse_args(sys.argv[2:])
         val_loss, val_metric = TensorflowTemplate.evaluate(
-            args.checkpoint, args.npz_dir, args.batch_size
+            args.checkpoint, args.npz_dir, args.batch_size, args.imperative
         )
         print(f'Validation - Loss: {val_loss:.4f} - Metric: {val_metric:.4f}')
 
