@@ -18,14 +18,13 @@ class CLI:
                 'train       Train the model\n'
                 'eval        Evaluate the model\n'
                 'test        Test the model\n'
-                'optimize    Optimize the model\n'
             ),
         )
         parser.add_argument(
             'command',
             type=str,
             help='Sub-command to run',
-            choices=('ingest', 'train', 'eval', 'test', 'optimize'),
+            choices=('ingest', 'train', 'eval', 'test'),
         )
 
         args = parser.parse_args(sys.argv[1:2])
@@ -144,22 +143,6 @@ class CLI:
             args.checkpoint, args.data_path, args.imperative
         )
         print(f'Output: {prediction:.4f}')
-
-    @staticmethod
-    def optimize() -> None:
-        # TODO: update description coherently with usage in __init__
-        parser = argparse.ArgumentParser(
-            description='Optimize the model',
-            usage='python3 -m tensorflow_template optimize checkpoint [--imperative]',
-        )
-        # TODO: update parameters and default values
-        parser.add_argument('checkpoint', type=str, help='Checkpoint path')
-        parser.add_argument(
-            '--imperative', action='store_true', help='Imperative model'
-        )
-
-        args = parser.parse_args(sys.argv[2:])
-        TensorflowTemplate.optimize(args.checkpoint, args.imperative)
 
 
 if __name__ == '__main__':
