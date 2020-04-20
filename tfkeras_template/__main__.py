@@ -65,8 +65,8 @@ class CLI:
         parser = argparse.ArgumentParser(
             description='Train the model',
             usage='python3 -m tensorflow_template train npz-dir '
-                  '[--output-dir OUTPUT-DIR --batch-size BATCH-SIZE --epochs EPOCHS '
-                  '--lr LR --checkpoint CHECKPOINT --imperative]',
+            '[--output-dir OUTPUT-DIR --batch-size BATCH-SIZE --epochs EPOCHS '
+            '--lr LR --checkpoint CHECKPOINT --imperative]',
         )
         # TODO: update parameters and default values
         parser.add_argument(
@@ -104,7 +104,7 @@ class CLI:
         parser = argparse.ArgumentParser(
             description='Evaluate the model',
             usage='python3 -m tensorflow_template eval checkpoint npz-dir '
-                  '[--batch-size BATCH-SIZE --imperative]',
+            '[--batch-size BATCH-SIZE --imperative]',
         )
         # TODO: update parameters and default values
         parser.add_argument('checkpoint', type=str, help='Checkpoint path')
