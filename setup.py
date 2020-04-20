@@ -26,7 +26,7 @@ with open(here / 'README.md', encoding='utf-8') as f:
 setup(
     name='tfkeras_template',  # TODO: update
     version=find_version('tfkeras_template', '__init__.py'),  # TODO: update
-    description='Template for deep learning project based on tf.keras',  # TODO: update
+    description='Template for deep learning project based on tf.keras on Tensorflow2',  # TODO: update
     long_description=long_description,
     author='Nextbit AI Team',
     author_email='lgrementieri@nextbit.it',  # TODO: update

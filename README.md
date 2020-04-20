@@ -36,7 +36,7 @@ tfkeras-template/                   [main folder]
 │   └───test
 │           ...
 │
-└───tfkeras_template             [package source code folder]
+└───tfkeras_template                [package source code folder]
         ...
 ```
 
