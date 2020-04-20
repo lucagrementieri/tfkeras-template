@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from tensorflow_template.app import TensorflowTemplate  # TODO: update
+from tfkeras_template.app import TFKerasTemplate  # TODO: update
 
 
 class CLI:
@@ -52,11 +52,11 @@ class CLI:
         parser.add_argument(
             '--overwrite',
             action='store_true',
-            help='Overwrite existing TFRecord files if present',
+            help='Overwrite existing .npz files if present',
         )
 
         args = parser.parse_args(sys.argv[2:])
-        TensorflowTemplate.ingest(args.data_dir, args.split, args.overwrite)
+        TFKerasTemplate.ingest(args.data_dir, args.split, args.overwrite)
         print(f'Ingestion completed')
 
     @staticmethod
@@ -88,7 +88,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        TensorflowTemplate.train(
+        TFKerasTemplate.train(
             args.npz_dir,
             args.output_dir,
             args.batch_size,
@@ -117,7 +117,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        val_loss, val_metric = TensorflowTemplate.evaluate(
+        val_loss, val_metric = TFKerasTemplate.evaluate(
             args.checkpoint, args.npz_dir, args.batch_size, args.imperative
         )
         print(f'Validation - Loss: {val_loss:.4f} - Metric: {val_metric:.4f}')
@@ -139,7 +139,7 @@ class CLI:
         )
 
         args = parser.parse_args(sys.argv[2:])
-        prediction = TensorflowTemplate.test(
+        prediction = TFKerasTemplate.test(
             args.checkpoint, args.data_path, args.imperative
         )
         print(f'Output: {prediction:.4f}')

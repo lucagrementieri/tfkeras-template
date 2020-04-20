@@ -106,4 +106,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# JetBrains editor settings
 .idea/
+
+# MacOS file
+.DS_Store
+

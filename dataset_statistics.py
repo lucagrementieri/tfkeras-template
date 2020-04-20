@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import tensorflow as tf
 
-from tensorflow_template.ingestion import NpyDataset
+from tfkeras_template.ingestion import NpyDataset
 
 
 def compute_statistics(root_dir: str) -> None:
@@ -51,7 +51,7 @@ def compute_statistics(root_dir: str) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Collect the mean and standard deviation for input data',
-        usage='python3.7 dataset_statistics.py root-dir',
+        usage='python3 dataset_statistics.py root-dir',
     )
     parser.add_argument(
         'root_dir', metavar='root-dir', type=str, help='Path to data root directory.'

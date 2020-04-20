@@ -13,7 +13,7 @@ from .utils import initialize_logger
 
 
 # TODO: update class name
-class TensorflowTemplate:
+class TFKerasTemplate:
     @staticmethod
     def build_model(
         feature_size: Optional[int] = None,
@@ -92,7 +92,7 @@ class TensorflowTemplate:
         metric = tf.keras.metrics.MeanSquaredError()
         # TODO: update feature size
         feature_size = 5
-        model = TensorflowTemplate.build_model(feature_size, checkpoint, imperative)
+        model = TFKerasTemplate.build_model(feature_size, checkpoint, imperative)
         model.compile(optimizer=optimizer, loss=criterion, metrics=[metric])
 
         checkpoint_path = checkpoint_dir / 'checkpoint-{epoch:02d}-{val_loss:.2f}'
@@ -124,7 +124,7 @@ class TensorflowTemplate:
 
         # TODO: update feature size
         feature_size = 5
-        model = TensorflowTemplate.build_model(feature_size, checkpoint, imperative)
+        model = TFKerasTemplate.build_model(feature_size, checkpoint, imperative)
         criterion = tf.keras.losses.MeanSquaredError()
         metric = tf.keras.metrics.MeanSquaredError()
         model.compile(loss=criterion, metrics=[metric])
@@ -136,7 +136,7 @@ class TensorflowTemplate:
         initialize_logger()
         # TODO: update feature size
         feature_size = 5
-        model = TensorflowTemplate.build_model(feature_size, checkpoint, imperative)
+        model = TFKerasTemplate.build_model(feature_size, checkpoint, imperative)
 
         # TODO: update transformations to be coherent with what was used during training
         transform = Normalize(
