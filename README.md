@@ -67,6 +67,11 @@ python3 generate_data.py
 ```
 This script should be removed from your project.
 
+You can compute the statistics (mean and standard deviation) of
+the generated training dataset with the script `dataset_statistics.py`.
+The calculated values are saved in `data/statistics.json` and they can be
+used to replace the hard-coded values used for data normalization in `app.py`. 
+
 ## Usage
 
 A command line interface is available to easily interact with the package.
