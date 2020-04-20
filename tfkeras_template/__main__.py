@@ -10,7 +10,7 @@ class CLI:
     def __init__(self):
         # TODO: update description and usage
         parser = argparse.ArgumentParser(
-            description='Command line interface for Tensorflow template',
+            description='Command line interface for TF.Keras template',
             usage=(
                 'python3 -m tensorflow_template <command> [<args>]\n'
                 '\n'

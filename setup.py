@@ -26,16 +26,17 @@ with open(here / 'README.md', encoding='utf-8') as f:
 setup(
     name='tfkeras_template',  # TODO: update
     version=find_version('tfkeras_template', '__init__.py'),  # TODO: update
-    description='Template for deep learning project based on tf.keras on Tensorflow2',  # TODO: update
+    # TODO: update
+    description='Template for deep learning projects based on tf.keras and Tensorflow2',
     long_description=long_description,
-    author='Nextbit AI Team',
-    author_email='lgrementieri@nextbit.it',  # TODO: update
+    author='Luca Grementieri',
+    author_email='luca.grementieri@ens-paris-saclay.fr',  # TODO: update
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Stable',
         # Indicate who your project is intended for
         'Intended Audience :: Data scientists',  # TODO: update
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
@@ -45,7 +46,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    keywords='AI deep learning tensorflow template',  # TODO: update
+    keywords='AI deep learning tensorflow keras template',  # TODO: update
     packages=find_packages(exclude=['build', 'data', 'dist', 'docs', 'tests']),
     python_requires='>=3.6',
     install_requires=[
