@@ -1,8 +1,8 @@
-# Tensorflow Template
+# TF.Keras Template
 
-Code and documentation template for Tensorflow research projects.
+Code and documentation template for deep learning projects based on tf.keras.
 This repository is intended to be cloned at the beginning of any
-new research deep learning project based on Tensorflow.
+new deep learning project based on Tensorflow 2 and Keras.
 
 Every TODO comment in the code indicates a portion of the code
 that should be adapted for every specific project.
@@ -17,9 +17,10 @@ The project folder, including also files excluded from git versioning,
 has the following structure:
 
 ```
-tensorflow-template/                [main folder]
+tfkeras-template/                   [main folder]
 │   .gitignore                      [files ignored by git]
-│   cli.py                          [package command-line interface]
+│   generate_data.py                [script to simulate data]
+│   dataset_statistics.py           [script to compute dataset mean and standard deviation]
 │   LICENSE                         [code license]
 │   README.md                       [this file]
 │   requirements.txt                [package dependencies]
@@ -35,59 +36,58 @@ tensorflow-template/                [main folder]
 │   └───test
 │           ...
 │
-├───docs                            [documentation folder]
-│       ...
-│
-└───tensorflow_template             [package source code folder]
+└───tfkeras_template             [package source code folder]
         ...
 ```
 
-You should comply to this structure in all your projects,
+You should comply to this structure in your project,
 in particular you should structure the `data` folder containing your dataset
 according to the hierarchy shown. 
 
 ### Prerequisites
 
-In order to run the code you need to have Python 3.6 installed.
+In order to run the code you need to have Python 3.6+ installed.
 
 ### Installing
 
 You can install the package on MacOS/Linux with the following commands:
 ```
-git clone https://github.com/nextbitlabs/tensorflow-template.git
-cd tensorflow-template
+git clone https://github.com/lucagrementieri/tfkeras-template.git
+cd tfkeras-template
 python3 setup.py sdist
 python3 setup.py bdist_wheel
-pip3 install --no-index --find-links=dist tensorflow_template -r requirements.txt
+pip3 install --no-index --find-links=dist tfkeras_template -r requirements.txt
 ```
+The installation is not compulsory, you can run all the commands
+explained below by calling them inside the directory `tfkeras-template`.
 
-Here data are synthetic so, in order to generate them run:
+Here data are synthetic so to generate them you have to run:
 ```
 python3 generate_data.py
 ```
+This script should be removed from your project.
 
 ## Usage
 
 A command line interface is available to easily interact with the package.
-It is defined in the file `cli.py`.
+It is defined in the file `__main__.py` file of the package.
 
-To see more details about the command line interface
-it is possible to show the help page using the command:
+This file allows to execute the package passing the flag `-m` to the Python interpreter
+For example, we can invoke the help page of the package
 ```
-python3 cli.py --help
+python3 -m tfkeras_template --help
 ``` 
 
-The available commands are:
+The help page lists the available commands:
 - `ingest`: preprocess raw data and export it in a suitable format for model
 training;
 - `train`: train the deep learning model on ingested data;
-- `restore`: restore the training from a saved checkpoint;
 - `eval`: evaluate the model on ingested validation data;
 - `test`: produce model output on a single raw data sample.
 
 Every command has its separate help page that can be visualized with
 ```
-python3 cli.py <command> --help
+python3 -m tfkeras_template <command> --help
 ```
 
 ### Command `ingest`
@@ -97,7 +97,7 @@ many transformations are required. Here, for example, it is not really necessary
 but it is included to show the code structure.
 
 In some cases an additional `safe-ingest` can be used to check and assure labels 
-coherence among the different dataset splits or to perform transformations
+coherence among the different dataset splits (training/development/test data) or to perform transformations
 that depend on other splits. Here it is not needed because the
 set of labels is not fixed since the example task is a regression.
 
@@ -106,113 +106,104 @@ set of labels is not fixed since the example task is a regression.
 Only the training set and the development set have to be ingested
 and that can be do with the following lines:
 ```
-python3 cli.py ingest data train
-python3 cli.py ingest data dev
+python3 -m tfkeras_template ingest data train
+python3 -m tfkeras_template ingest data dev
 ```
 
 For more details on the usage you can access the help page with the command
 ```
-python3 cli.py ingest --help
+python3 -m tfkeras_template ingest --help
 ```
+
+`ingest` command can be called on test data with
+```
+python3 -m tfkeras_template ingest data test
+```
+but it produces an empty directory because test data enters
+the system as raw data.
+Data processing on test data is performed at runtime
+before the model prediction.
 
 ### Command `train`
 
 The training phase has always the same structure and the template is built
 to keep all the tried models in files separated from the main training function.
 
-The path to the best weight checkpoint according to the metric is printed
-to console at the end of the computation.
+There are many ways to define a model in Tensorflow 2.0 with Keras.
+The template supports both symbolic (traditional Tensorflow) and imperative
+(Eager Execution) models using the same interface.
 
 #### Examples
 
 The command has many optional training-related parameters commonly tuned by the 
 experimenter, like `batch-size`, `epochs`, `lr`. 
-Logging options are also available: `silent` to log only warning 
-messages, and `debug` for a more verbose logging. 
 
 The most basic training can be performed specifying just the directory containing
 the dataset, already split in `train` (compulsory) and `dev` (optional) folders
 using the default values for the other parameters.
 ```
-python3 cli.py train data/tensors
+python3 -m tfkeras_template train data/npz
 ```
 
 An equivalent form of the previous command with all the default values
 manually specified is:
 ```
-python3 cli.py train \
-    data/tensors \
-    --output-dir . \
+python3 -m tfkeras_template train \
+    data/npz \
+    --output-dir ./runs \
     --batch-size 20 \
-    --epochs 40 \
+    --epochs 30 \
     --lr 0.1
 ```
 
-For more details on the usage you can access the help page with the command
+An optional flag `--imperative` allows to force the training to
+use the imperative version of the model. The default model is based
+on a symbolic computational graph, the fastest and most optimized way to define a model. 
+
+The same command allows to restore a previous training from a checkpoint
 ```
-python3 cli.py train --help
-```
-
-### Command `restore`
-
-When the model has not converged at the end of the training phase, it
-can be useful to restore it from the last saved checkpoint and that is exactly
-the role of this command.
-
-#### Examples
-
-
-The command has the same optional parameters of the `train` command.
-It just has an additional compulsory parameter: the path to the checkpoint model
-to be restored.
-
-The most basic restored training can be performed specifying just the directory
-containing the dataset, already split in `train` (compulsory) and `dev` (optional)
-folders, and the checkpoint path using the default values for the other parameters.
-```
-python3 cli.py restore runs/<secfromepochs>/checkpoints/model-<epoch>-<metric>.ckpt data/tensors
+python3 -m tfkeras_template train \
+    data/npz \
+    --output-dir ./runs \
+    --checkpoint ./runs/000000-symbolic/checkpoints/checkpoint-10-0.10
 ```
 
-An equivalent form of the previous command with all the default values
-manually specified is:
-```
-python3 cli.py restore \
-    runs/<secfromepochs>/checkpoints/model-<epoch>-<metric>.ckpt \
-    data/tensors \
-    --output-dir . \
-    --batch-size 20 \
-    --epochs 40 \
-    --lr 0.1
-```
+A Tensorflow checkpoint is composed by a file with extension `.index`
+and one or more files with suffix `.data-<part>-of-<total>`.
+The correct checkpoint name to be passed is without any extension.
+For example, the previous command works if the checkpoint directory 
+contains a pair of files named `checkpoint-10-0.10.index` and
+`checkpoint-10-0.10.data-000000-of-000001`.
 
 For more details on the usage you can access the help page with the command
 ```
-python3 cli.py restore --help
+python3 -m tfkeras_template eval --help
 ```
 
 ### Command `eval`
 
-The `eval` command reproduces the validation performed at the end of every epoch during the training phase.
-It is particularly useful when many datasets are available to evaluate the transfer learning performances.
+The `eval` command reproduces the validation performed at the end of every epoch during 
+the training phase. It is particularly useful when many datasets are available to
+evaluate the transfer learning performances.
 
 #### Examples
 
 The evaluation can be performed specifying just the model checkpoint
-to be evaluated and the directory containing the dataset, provided of a `dev` sub-folders.
-The batch size of evaluation batches can be manually specified otherwise its default
-value is 20.
+to be evaluated and the directory containing the dataset, provided of a `dev` sub-folder.
 
-A full call to the command is:
+The command can be called with:
 ```
-python3 cli.py eval \
-    runs/<secfromepochs>/checkpoints/model-<epoch>-<metric>.ckpt \
-    data/tensors \
-    --batch-size 20
+python3 -m tfkeras_template eval \
+    ./runs/000000-symbolic/checkpoints/checkpoint-10-0.10 \
+    data/npz \
 ```
+
+It is necessary to add the flag `--impartive` if the model was defined in
+an imperative way during training. 
 
 For more details on the usage you can access the help page with the command
 ```
-python3 cli.py eval --help
+python3 -m tfkeras_template eval --help
 ```
 
 ### Command `test`
@@ -221,22 +212,22 @@ The `test` command preforms the inference on a single file.
 
 #### Examples
 
-The test of the model is performed specifying the model checkpoint to be evaluated
-and the path to a sample, for example:
+The test of the model is performed specifying a model checkpoint
+and the path to an input file.
+For example:
 ```
-python3 cli.py test \
-    runs/<secfromepochs>/checkpoints/model-<epoch>-<metric>.ckpt \
-    data/test/<sample>.pt
+python3 -m tfkeras_template test  \
+    ./runs/000000-symbolic/checkpoints/checkpoint-10-0.10 \
+    data/test/test_000.npy
 ```
+
+If the checkpoint refers to a model defined imperatively,
+it is necessary to use the flag `--imparative` to load it correctly.
 
 For more details on the usage you can access the help page with the command
 ```
-python3 cli.py test --help
+python3 -m tfkeras_template test --help
 ```
-
-## Performances
-
-The model converges to perfect predictions using default parameters.
 
 ## Deployment
 
@@ -245,7 +236,7 @@ the steps necessary to configure it on a AWS EC2 **g4dn.xlarge** instance
 on the **NVIDIA Deep Learning AMI** environment.
 
 1. Log in via ssh following the instructions on the EC2 Management Dashboard.
-2. Clone the repo `tensorflow-template` in the home directory.
+2. Clone the repo `tfkeras-template` in the home directory.
 3. Download the most update Tensorflow container running 
 `docker pull nvcr.io/nvidia/tensorflow:YY.MM-tf2-py3`
 4. Create a container with
